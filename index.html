@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ability Board</title>
+<style>
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400;font-display:swap;src:url("fonts/schibsted-grotesk-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:600;font-display:swap;src:url("fonts/schibsted-grotesk-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:800;font-display:swap;src:url("fonts/schibsted-grotesk-latin-800-normal.woff2") format("woff2")}
+:root{--bg:#eceff9;--surface:#fff;--ink:#12172e;--muted:#5a6485;--line:#dde2f2;--accent:#4a5df0;--accent-ink:#fff;--soft:#e8ebff;--good:#14866d;--warn:#a96a0b;--bad:#c23a4a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#080d1c;--surface:#111936;--ink:#eaeefc;--muted:#97a3c7;--line:#222d56;--accent:#8a9bff;--accent-ink:#0a1030;--soft:#1b2550;--good:#4cc9a6;--warn:#e0a84a;--bad:#ff7d8b}}
+:root[data-theme="dark"]{--bg:#080d1c;--surface:#111936;--ink:#eaeefc;--muted:#97a3c7;--line:#222d56;--accent:#8a9bff;--accent-ink:#0a1030;--soft:#1b2550;--good:#4cc9a6;--warn:#e0a84a;--bad:#ff7d8b}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:22px 16px 56px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#4a5df0,#9b6bff);display:grid;grid-template-columns:repeat(2,9px);grid-auto-rows:9px;gap:4px;place-content:center}
+.logo i{background:#fff;border-radius:3px;opacity:.95}.logo i:nth-child(2){opacity:.55}.logo i:nth-child(3){opacity:.4}
+h1{font-size:22px;font-weight:800;margin:0;letter-spacing:-.01em;line-height:1.1}
+h2{font-size:18px;margin:0 0 6px;font-weight:600}
+.sub{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tab{border:0;background:none;padding:8px 16px;border-radius:9px;cursor:pointer;color:var(--muted);font-weight:600}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+#tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:0}
+.tile b{display:block;font-size:24px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grid{display:grid;grid-template-columns:minmax(280px,340px) 1fr;gap:16px;align-items:start}
+@media(max-width:800px){.grid{grid-template-columns:1fr}#tiles{grid-template-columns:1fr 1fr}#tiles .tile:last-child{grid-column:1/-1}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
+input[type=text],input[type=number],input[type=date],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 11px;min-width:0}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.row{width:100%;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;text-align:left;background:none;border:1px solid transparent;border-radius:12px;padding:10px 12px;cursor:pointer}
+.row:hover{background:var(--bg)}
+.row[aria-current="true"]{background:var(--soft);border-color:var(--accent)}
+.num{font-variant-numeric:tabular-nums;font-weight:600}
+.chip{display:inline-block;min-width:30px;text-align:center;border-radius:7px;padding:1px 7px;font-weight:800;font-size:13px;background:var(--accent);color:var(--accent-ink)}
+.g-A,.g-A\+{background:#21c7a8;color:#06241e}.g-C,.g-D{background:#ffb454;color:#2d1c00}.g-F{background:#ff6b7d;color:#31060d}.g-none{background:var(--line);color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--muted)}
+.st-secured{background:var(--good)}.st-track{background:var(--accent)}.st-behind{background:var(--warn)}.st-out{background:var(--bad)}
+.add{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.add input{grid-column:1/-1}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:8px 16px;font-weight:600;cursor:pointer}
+.btn.ghost{background:none;color:var(--accent)}.btn.danger{border-color:var(--bad);color:var(--bad);background:none}
+.err{color:var(--bad);font-size:13px;min-height:1.2em;grid-column:1/-1;margin:0}
+.card{background:radial-gradient(120% 100% at 0% 0%,#2b3a9c 0%,#141c4d 55%,#0c1130 100%);color:#eef1ff;border-radius:22px;padding:22px;border:1px solid #33408f}
+.card .sub{color:#aab4e6}
+.gi{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.2)!important;color:#fff!important;color-scheme:dark;width:100%}
+.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.meta label{display:grid;gap:3px;font-size:12px;color:#aab4e6}
+.meta .nm{grid-column:1/-1;font-size:20px;font-weight:800}
+@media(max-width:560px){.meta{grid-template-columns:1fr 1fr}}
+.body{display:grid;grid-template-columns:210px 1fr;gap:14px;align-items:center;margin:14px 0}
+.aura{border-radius:22px;padding:18px 16px 22px;color:#f1f1ff;border:1px solid rgba(255,255,255,.12);overflow:hidden;text-align:center}
+.aura .sub{color:rgba(255,255,255,.7)}
+.seg{display:inline-flex;gap:4px;background:rgba(255,255,255,.08);border-radius:12px;padding:4px}
+.seg button{border:0;background:none;color:#cfd3f5;padding:7px 14px;border-radius:9px;cursor:pointer;font-weight:600}
+.seg button[aria-pressed="true"]{background:linear-gradient(135deg,var(--a),var(--b));color:#0b0b1a}
+.stage{position:relative;width:min(100%,440px);aspect-ratio:1;margin:6px auto 0}
+.stage canvas{position:absolute;inset:-12%;width:124%;height:124%;pointer-events:none}
+.bigring{position:absolute;inset:0;width:100%;height:100%}
+.bt{fill:none;stroke:rgba(255,255,255,.08);stroke-width:12}
+.bc,.bp,.bf{fill:none;stroke-linecap:round;transition:stroke-dashoffset 1.3s cubic-bezier(.2,.8,.2,1)}
+.bc{stroke:var(--a);stroke-opacity:.3;stroke-width:12}
+.bp{stroke-width:12;filter:drop-shadow(0 0 10px var(--a))}
+.bf{stroke:#fff;stroke-opacity:.85;stroke-width:4}
+.bn{fill:#fff;font-size:76px;font-weight:800;text-anchor:middle;letter-spacing:-.03em;filter:drop-shadow(0 0 14px var(--a))}
+.bl{fill:rgba(255,255,255,.72);font-size:15px;text-anchor:middle}
+.ttl{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-top:4px;text-shadow:0 0 22px var(--a)}
+.ttl small{display:block;font-size:14px;font-weight:600;color:rgba(255,255,255,.72);text-shadow:none;letter-spacing:0}
+.line{max-width:46ch;margin:8px auto 16px;color:rgba(255,255,255,.88)}
+.battle{max-width:520px;margin:0 auto 14px;text-align:left;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:12px 14px}
+.battle b{display:block;font-size:17px}
+.gs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:520px;margin:0 auto}
+.gs div{background:rgba(255,255,255,.07);border-radius:12px;padding:8px}.gs b{display:block;font-size:20px}
+.aura .note{color:rgba(255,255,255,.68);margin:14px auto 0;font-size:13px;max-width:60ch}
+html[data-aura="asta"] .card{background:radial-gradient(120% 100% at 0% 0%,#7a0f1c 0%,#2a0a10 55%,#0d0407 100%);border-color:#7a1f2a}
+html[data-aura="asta"] .rval{stroke:#ff6a3c}
+html[data-aura="jin"] .card{background:radial-gradient(120% 100% at 0% 0%,#4c1d95 0%,#1b1040 55%,#090616 100%);border-color:#5b3bb0}
+html[data-aura="jin"] .rval{stroke:#a78bfa}
+#subtabs{margin-top:12px}
+.aura{position:relative}
+.aura>*:not(.bgmedia){position:relative;z-index:1}
+.bgmedia{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.bgmedia img,.bgmedia video{width:100%;height:100%;object-fit:cover;object-position:center 20%;opacity:.65;display:block}
+.bgmedia::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,5,15,.2),rgba(5,5,15,.72))}
+.addbig{position:absolute;left:50%;top:68%;transform:translateX(-50%);z-index:2;display:flex;gap:8px;align-items:center;white-space:nowrap;background:rgba(255,255,255,.1);border:1px dashed rgba(255,255,255,.55);border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:600;color:#fff}
+.addbig span{font-size:20px;line-height:1}
+.pic{transform-origin:180px 180px;animation:breathe 5s ease-in-out infinite}
+.halo{fill:none;stroke:var(--a);stroke-width:3;filter:drop-shadow(0 0 8px var(--a));animation:halo 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes halo{0%,100%{opacity:.3}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.pic,.halo{animation:none}}
+#subtabs .tabs{display:inline-flex;max-width:100%;overflow-x:auto}
+.bn2{fill:#fff;font-size:24px;font-weight:800;text-anchor:middle}
+.aura .btn.ghost{color:#fff;border-color:rgba(255,255,255,.4)}
+.imgbtn{display:inline-block;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.bc,.bp,.bf{transition:none}}
+@media(max-width:620px){.body{grid-template-columns:1fr}}
+.rsvg{width:100%;max-width:210px;margin:0 auto;display:block}
+.rtrack{fill:none;stroke:rgba(255,255,255,.14);stroke-width:9}
+.rval{fill:none;stroke:#9fb0ff;stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)}
+.rnum{fill:#fff;font-size:30px;font-weight:800;text-anchor:middle}
+.rgr{fill:#aab4e6;font-size:12px;text-anchor:middle}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sb{background:rgba(255,255,255,.07);border-radius:12px;padding:10px;min-width:0}
+.sb b{display:block;font-size:20px;font-weight:800}
+.msg{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.09);font-weight:600}
+.ih,.ir{display:grid;grid-template-columns:1fr 66px 66px 66px 28px;gap:6px;align-items:center;margin-bottom:6px}
+.ih{font-size:12px;color:#aab4e6}
+.x{border:0;background:none;color:#ff9aa6;font-size:20px;cursor:pointer;line-height:1}
+.btn.gc{border-color:#9fb0ff;color:#cdd6ff;background:none}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th,.tbl td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+.tbl th{color:var(--muted);font-weight:600;font-size:12px}
+.scroll{overflow-x:auto}
+.inl{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0 16px}
+.inl label{display:grid;gap:3px;font-size:13px;color:var(--muted)}
+textarea{width:100%;min-height:150px;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace}
+.note{color:var(--muted);font-size:14px;margin:8px 0;max-width:72ch}
+.empty{color:var(--muted);padding:20px 0;text-align:center}
+.sec{margin-top:18px}
+#semrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+#semrow label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.add.three{grid-template-columns:80px 1fr auto}
+.semcard{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;background:var(--bg)}
+.semcard[aria-current="true"]{border-color:var(--accent)}
+.semhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start}
+.semhead input[type=text]{font-weight:800;font-size:17px;width:min(100%,260px);background:var(--surface)}
+.semg{text-align:right;min-width:150px}.semg b{font-size:20px;display:block}
+.meter{height:6px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}.meter i{display:block;height:100%;background:var(--accent)}
+@media(max-width:560px){.semg{text-align:left}.add.three{grid-template-columns:70px 1fr}.add.three button{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){.rval{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="brand"><div class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div><h1>Ability Board</h1><span class="sub">Grades, GPA and targets on the Northrise scale</span></div></div>
+<div class="tabs" role="tablist" id="tabs"></div>
+</header>
+<div id="subtabs"></div>
+<div id="semrow"></div>
+<div id="tiles"></div>
+<main id="view"></main>
+</div>
+<script>
+// Northrise scale (2017 catalog): [minimum %, letter, grade points]
+const SCALE=[[90,'A+',4.33],[80,'A',4],[75,'B+',3.33],[70,'B',3],[65,'C+',2.67],[60,'C',2],[55,'D+',1.67],[50,'D',1],[0,'F',0]];
+const TARGETS=SCALE.slice(0,8);
+// Assumption: percentages are rounded to a whole number before banding (89.5 counts as 90).
+const band=p=>SCALE.find(r=>Math.round(p)>=r[0]);
+const THR=[[2,'Minimum GPA to graduate (undergraduate)'],[2.25,'Credit'],[2.5,'Merit, and the progression minimum into year 3 for ICT programs'],[3,'Distinction'],[3.5,'High distinction']];
+const cls=g=>g>=3.5?'High distinction':g>=3?'Distinction':g>=2.5?'Merit':g>=2.25?'Credit':g>=2?'Pass':'Below pass mark';
+const KEY='ability-board-v3',OLD='ability-board-v2',THEMES=['asta','jin','classic'];
+const imgsOk=o=>{const r={asta:'',jin:'',classic:''};if(o&&typeof o==='object')THEMES.forEach(k=>{if(typeof o[k]==='string'&&o[k].length<1500000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(o[k]))r[k]=o[k]});return r};
+const DEF=()=>[['Assignment 1 (individual)',10],['Mid-semester exam',30],['Team presentation',5],['Team project',5],['Final exam',50]].map(([name,m])=>({name,w:m,s:null,max:m}));
+const mkC=(name,exam,cr=3)=>({name,credits:cr,exam,target:'A',items:DEF()});
+const num=(v,lo,hi,d)=>{const n=Number(v);return Number.isFinite(n)?Math.max(lo,Math.min(hi,n)):d};
+const okC=c=>c&&Array.isArray(c.items)&&c.items.every(i=>i&&typeof i==='object');
+const valid=d=>!!d&&((Array.isArray(d.semesters)&&d.semesters.every(s=>s&&Array.isArray(s.courses)&&s.courses.every(okC)))||(Array.isArray(d.courses)&&d.courses.every(okC)));
+function normC(c,ci){
+ const items=c.items.map((i,ii)=>{const max=Math.max(1,num(i.max,1,100000,100));return{id:ii+1,name:String(i.name||'Assessment').slice(0,60),w:num(i.w,0,100,0),max,s:(i.s===null||i.s===undefined||i.s==='')?null:num(i.s,0,max,0)}});
+ return{id:ci+1,name:String(c.name||'Course').slice(0,60),credits:num(c.credits,0,30,3),exam:/^\d{4}-\d{2}-\d{2}$/.test(c.exam||'')?c.exam:'',target:TARGETS.some(r=>r[1]===c.target)?c.target:'A',items};
+}
+function norm(d){
+ const src=Array.isArray(d.semesters)?d.semesters:[{name:'Semester 1',courses:d.courses}];
+ const ss=src.map((s,i)=>({name:String(s.name||'Semester '+(i+1)).slice(0,40),courses:s.courses.map(normC)}));
+ if(!ss.length)ss.push({name:'Semester 1',courses:[]});
+ const p=d.prior||{};
+ return{theme:THEMES.includes(d.theme)?d.theme:'classic',imgs:imgsOk(d.imgs),semesters:ss,active:Math.round(num(d.active,0,ss.length-1,ss.length-1)),prior:{gpa:num(p.gpa,0,4.33,0),credits:num(p.credits,0,500,0)}};
+}
+// Upgrade untouched starter data from the earlier 60/40 layout; entered scores are never overwritten
+const isOld=c=>c.items.length===2&&c.items[0].name==='Continuous assessment'&&c.items[1].name==='Final exam'&&c.items.every(i=>i.s===null||i.s===undefined||i.s==='');
+function load(){
+ try{let r=JSON.parse(localStorage.getItem(KEY));if(!valid(r))r=JSON.parse(localStorage.getItem(OLD));
+  if(valid(r)){(r.semesters||[{courses:r.courses}]).forEach(s=>s.courses.forEach(c=>{if(isOld(c))c.items=DEF()}));return r}}catch(e){}
+ return null;
+}
+let S=norm(load()||{courses:[]});
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));return true}catch(e){return false}}
+const sem=()=>S.semesters[S.active],CS=()=>sem().courses;
+const U={tab:'aura',last:'courses',sel:null,del:false,reset:false,delSem:null};
+const selFirst=()=>{const c=CS();U.sel=c.length?c[0].id:null};selFirst();
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cc=()=>CS().find(c=>c.id===U.sel);
+
+// Per-course maths. Marks are normalised to 100 if the weights don't add up to 100.
+function calc(c){
+ const tw=c.items.reduce((a,i)=>a+i.w,0)||1,k=100/tw;let E=0,Wg=0;
+ c.items.forEach(i=>{if(i.s!==null){E+=i.w*k*i.s/i.max;Wg+=i.w*k}});
+ const R=Math.max(0,100-Wg),cur=Wg>0?E/Wg*100:null,m=SCALE.find(r=>r[1]===c.target)[0],thr=m-0.5;
+ const need=R>1e-9?(thr-E)/R*100:(E>=thr?0:Infinity),ceil=E+R;
+ const st=E>=thr?'secured':ceil<thr?'out':cur===null?'open':cur>=need?'track':'behind';
+ return{tw:c.items.reduce((a,i)=>a+i.w,0),E,Wg,R,cur,floor:E,ceil,need,m,st};
+}
+const gpa=rows=>{const cr=rows.reduce((a,r)=>a+r.cr,0);return{g:cr?rows.reduce((a,r)=>a+band(r.p)[2]*r.cr,0)/cr:null,cr}};
+// Other semesters count at their actual result (or current pace if not fully marked)
+const other=()=>gpa(S.semesters.flatMap((s,i)=>i===S.active?[]:s.courses).map(c=>({c,k:calc(c)})).filter(r=>r.k.cur!==null).map(r=>({p:r.k.cur,cr:r.c.credits})));
+const cum=x=>{if(x.g===null)return null;const o=other(),pc=S.prior.credits,tc=pc+o.cr+x.cr;return tc?(S.prior.gpa*pc+(o.g||0)*o.cr+x.g*x.cr)/tc:x.g};
+const hasPrev=()=>S.prior.credits>0||other().cr>0;
+function scen(cs){
+ const rows=cs.map(c=>({c,k:calc(c)}));
+ const g=f=>gpa(rows.filter(f.w||(()=>true)).map(r=>({p:f.p(r),cr:r.c.credits})));
+ return{rows,f:g({p:r=>r.k.floor}),p:g({p:r=>r.k.cur,w:r=>r.k.cur!==null}),u:g({p:r=>r.k.ceil}),t:g({p:r=>r.k.m}),n:rows.filter(r=>r.k.cur!==null).length};
+}
+const days=d=>{if(!d)return null;const t=new Date();t.setHours(0,0,0,0);return Math.round((new Date(d+'T00:00:00')-t)/864e5)};
+const fd=d=>d?new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'No date';
+const left=d=>{const n=days(d);return n===null?'':n<0?'Exam passed':n===0?'Exam today':n+(n===1?' day':' days')+' left'};
+const ST={secured:'Secured',track:'On track',behind:'Behind',out:'Out of reach',open:'No scores'};
+const chip=p=>p===null?'<span class="chip g-none">-</span>':`<span class="chip g-${band(p)[1].replace('+','\\+')}">${band(p)[1]}</span>`;
+const fx=(v,d=1)=>v===null||!Number.isFinite(v)?'-':v.toFixed(d);
+
+function semrow(){$('#semrow').innerHTML=`<label>Semester<select id="sem" aria-label="Active semester">${S.semesters.map((s,i)=>`<option value="${i}"${i===S.active?' selected':''}>${esc(s.name)}</option>`).join('')}</select></label><button class="btn ghost" data-act="tab" data-v="semesters">Manage semesters</button>`}
+function tiles(){
+ const s=scen(CS()),cp=cum(s.p),nx=CS().filter(c=>days(c.exam)!==null&&days(c.exam)>=0).sort((a,b)=>days(a.exam)-days(b.exam))[0];
+ $('#tiles').innerHTML=`<div class="tile"><span class="sub">Projected GPA, ${esc(sem().name)}</span><b>${fx(s.p.g,2)}</b><span class="sub">${s.n} of ${CS().length} courses have scores</span></div>
+ <div class="tile"><span class="sub">${hasPrev()?'Projected cumulative GPA':'Cumulative GPA (no earlier semesters)'}</span><b>${fx(cp,2)}</b><span class="sub">${cp===null?'Enter scores to see this':cls(cp)}</span></div>
+ <div class="tile"><span class="sub">Next exam</span><b>${nx?esc(nx.name):'None scheduled'}</b><span class="sub">${nx?fd(nx.exam)+', '+left(nx.exam):'Add exam dates to courses'}</span></div>`;
+}
+function render(){
+ stopAura();document.documentElement.dataset.aura=S.theme;
+ const home=U.tab==='aura';if(!home)U.last=U.tab;
+ $('#tabs').innerHTML=[['aura','Aura',home],['setup','Setup',!home]].map(([k,l,on])=>`<button class="tab" role="tab" data-act="tab" data-v="${k==='setup'?U.last:k}" aria-selected="${on}">${l}</button>`).join('');
+ $('#subtabs').innerHTML=home?'':`<div class="tabs" role="tablist" aria-label="Setup pages">${[['courses','Courses'],['semesters','Semesters'],['gpa','GPA'],['data','Data']].map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-v="${k}" aria-selected="${U.tab===k}">${l}</button>`).join('')}</div>`;
+ semrow();tiles();$('#tiles').style.display=home?'none':'';const v=$('#view');
+ if(U.tab==='courses'){
+  v.innerHTML=`<div class="grid"><section class="panel" aria-label="Courses"><ul id="list"></ul>
+  <form class="add three" id="add" novalidate><input type="text" id="nn" maxlength="60" placeholder="New course name" aria-label="New course name"><input type="number" id="nc" min="0" max="30" value="3" aria-label="Credits"><input type="date" id="nd" aria-label="Exam date"><button class="btn" type="submit">Add course</button><p class="err" id="err" role="alert"></p></form>
+  <p class="sub" style="margin:8px 0 0">Adds to ${esc(sem().name)}. Credits and exam date are optional to set now.</p></section>
+  <section class="card" id="detail" aria-live="polite"><div id="head"></div><div id="calc"></div><div id="items"></div></section></div>`;
+  fillList();fillHead();fillCalc(true);fillItems();
+ }else if(U.tab==='aura'){v.innerHTML=auraHTML();startAura();loadBg()}
+ else if(U.tab==='semesters')v.innerHTML=semHTML();
+ else if(U.tab==='gpa'){
+  v.innerHTML=`<section class="panel"><h2>GPA: ${esc(sem().name)}</h2><p class="note">Floor is what you are guaranteed even with zero on everything unmarked. Projected assumes you keep your current average. Ceiling assumes full marks on the rest. Other semesters count at their actual result, or current pace if not fully marked.</p>
+  <div class="inl"><label>Credits completed before you started using this app<input type="number" id="pc" min="0" step="1" value="${S.prior.credits}"></label><label>Cumulative GPA for those credits<input type="number" id="pg" min="0" max="4.33" step="0.01" value="${S.prior.gpa}"></label></div><div id="gres"></div></section>`;
+  fillG();
+ }else{
+  v.innerHTML=`<section class="panel"><h2>Your data</h2><p class="note">Data is saved only on this device and works fully offline. Save backup file creates a file you can keep in Drive or send to yourself, and Load backup file plus Import data restores it. Images are kept separately on this device and are not included. Uninstalling the app or clearing its storage deletes your data, so save a backup first.</p>
+  <textarea id="io" aria-label="Data as JSON" spellcheck="false"></textarea>
+  <p style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0"><button class="btn" data-act="savefile">Save backup file</button><label class="btn ghost imgbtn">Load backup file<input type="file" id="loadfile" accept="application/json,.json,text/plain" hidden></label><button class="btn ghost" data-act="export">Show data as text</button><button class="btn ghost" data-act="import">Import data</button><button class="btn danger" data-act="reset">${U.reset?'Click again to erase everything':'Reset all data'}</button></p><p class="note" id="dmsg" role="status"></p>
+  <div class="sec"><h2>Grade scale</h2><div class="scroll"><table class="tbl"><tr><th>Letter</th><th>Marks</th><th>Grade points</th></tr>${SCALE.map((r,i)=>`<tr><td>${r[1]}</td><td>${i?r[0]+' to '+(SCALE[i-1][0]-1):'90 to 100'}</td><td>${r[2].toFixed(2)}</td></tr>`).join('')}</table></div>
+  <p class="note">Source: the Northrise University grading table, confirmed against a current copy and matching the August 2017 catalog. Final percentages are rounded to a whole number before the letter is assigned, which is an assumption because the catalog does not say how fractions are handled. Students at other universities would need a different scale.</p></div></section>`;
+ }
+}
+function semHTML(){
+ let pts=S.prior.gpa*S.prior.credits,cr=S.prior.credits;
+ const cards=S.semesters.map((s,i)=>{
+  const sc=scen(s.courses);if(sc.p.g!==null){pts+=sc.p.g*sc.p.cr;cr+=sc.p.cr}
+  const cu=cr?pts/cr:null,tc=s.courses.reduce((a,c)=>a+c.credits,0);
+  const rows=sc.rows.map(r=>`<tr><td>${esc(r.c.name)}</td><td>${r.c.credits}</td><td>${fx(r.k.cur)}${r.k.cur===null?'':'%'} ${chip(r.k.cur)}</td><td>${fx(r.k.Wg,0)}%</td></tr>`).join('')||'<tr><td colspan="4" class="sub">No courses in this semester yet.</td></tr>';
+  return`<div class="semcard" aria-current="${i===S.active}"><div class="semhead"><div><input type="text" data-sn="${i}" maxlength="40" value="${esc(s.name)}" aria-label="Semester name"><br><span class="sub">${s.courses.length} courses, ${tc} credits${i===S.active?'. Active':''}</span></div>
+  <div class="semg"><b>GPA ${fx(sc.p.g,2)}</b><span class="sub">Cumulative ${fx(cu,2)}${cu===null?'':', '+cls(cu)}</span><div class="meter"><i style="width:${sc.p.g===null?0:sc.p.g/4.33*100}%"></i></div></div></div>
+  <div class="scroll"><table class="tbl"><tr><th>Course</th><th>Credits</th><th>Result</th><th>Marked</th></tr>${rows}</table></div>
+  <p style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0"><button class="btn" data-act="opensem" data-s="${i}">${i===S.active?'Edit this semester':'Open'}</button>${S.semesters.length>1?`<button class="btn danger" data-act="delsem" data-s="${i}">${U.delSem===i?'Click again to delete':'Delete semester'}</button>`:''}</p></div>`}).join('');
+ return`<section class="panel"><h2>Semesters</h2><p class="note">Each semester shows its result so far: final where all work is marked, otherwise current pace. Cumulative GPA runs from the first semester, including any earlier credits you entered on the GPA tab. For a semester you finished before using this app, add each course with one assessment worth 100 marks and enter the overall percentage.</p>${cards}
+ <form class="add" id="adds" novalidate><input type="text" id="sn" maxlength="40" placeholder="New semester name, for example Semester 2" aria-label="New semester name"><button class="btn" type="submit">Start new semester</button><p class="err" id="serr" role="alert"></p></form></section>`;
+}
+function fillList(){
+ const o=CS().slice().sort((a,b)=>(a.exam||'9')<(b.exam||'9')?-1:1);
+ $('#list').innerHTML=o.length?o.map(c=>{const k=calc(c);return`<li><button class="row" data-act="sel" data-id="${c.id}" aria-current="${c.id===U.sel}"><span>${esc(c.name)}<br><span class="sub"><i class="dot st-${k.st}"></i>${ST[k.st]}. ${fd(c.exam)}</span></span>${chip(k.cur)}</button></li>`}).join(''):'<li class="empty">No courses in this semester yet. Add one below.</li>';
+}
+function fillHead(){
+ const c=cc(),el=$('#head');
+ if(!c){el.innerHTML='<p class="empty">Add a course to start tracking.</p>';return}
+ el.innerHTML=`<div class="meta"><label class="nm"><input type="text" class="gi nm" data-f="name" maxlength="60" value="${esc(c.name)}" aria-label="Course name"></label>
+ <label>Credits<input type="number" class="gi" data-f="credits" min="0" max="30" value="${c.credits}"></label>
+ <label>Exam date<input type="date" class="gi" data-f="exam" value="${c.exam}"></label>
+ <label>Target grade<select class="gi" id="tgt">${TARGETS.map(r=>`<option value="${r[1]}"${r[1]===c.target?' selected':''}>${r[1]} (${r[0]}+)</option>`).join('')}</select></label></div>`;
+}
+const CIRC=326.7;
+function gauge(p,animate){
+ const t=p===null?CIRC:CIRC*(1-Math.min(100,p)/100);
+ return`<svg class="rsvg" viewBox="0 0 120 120" role="img" aria-label="Current average"><circle class="rtrack" cx="60" cy="60" r="52"/><circle class="rval" id="rv" cx="60" cy="60" r="52" transform="rotate(-90 60 60)" stroke-dasharray="${CIRC}" stroke-dashoffset="${animate?CIRC:t}" data-t="${t}"/><text class="rnum" x="60" y="64">${p===null?'-':p.toFixed(1)}</text><text class="rgr" x="60" y="82">${p===null?'No scores':'Grade '+band(p)[1]}</text></svg>`;
+}
+function fillCalc(animate){
+ const c=cc(),el=$('#calc');if(!c){el.innerHTML='';return}
+ const k=calc(c),t=c.target;let m;
+ if(k.st==='secured')m=`Target secured: even zero on the rest finishes at ${t} or better.`;
+ else if(k.st==='out')m=`Out of reach: the best possible finish is ${band(k.ceil)[1]}.`;
+ else if(k.st==='open')m=`No scores yet. To finish on ${t}, you need an average of ${fx(k.need)}% across the whole course.`;
+ else m=`Need ${fx(k.need)}% on average across the remaining ${fx(k.R,0)}% of marks to finish on ${t}. ${k.st==='track'?'Your current average is enough.':'Your current average is below that.'}`;
+ const w=Math.abs(k.tw-100)>0.01?`<p class="msg" style="color:#ffd48a">Weights add up to ${fx(k.tw,1)}%, not 100%. Marks are scaled to fit.</p>`:'';
+ el.innerHTML=`<div class="body">${gauge(k.cur,animate)}<div><div class="stats"><div class="sb"><span class="sub">Floor</span><b>${fx(k.floor)}%</b>${chip(k.floor)}</div><div class="sb"><span class="sub">At current pace</span><b>${fx(k.cur)}${k.cur===null?'':'%'}</b>${chip(k.cur)}</div><div class="sb"><span class="sub">Ceiling</span><b>${fx(k.ceil)}%</b>${chip(k.ceil)}</div></div>
+ <p class="msg">${m}</p>${w}<p class="sub" style="margin:8px 0 0">${fd(c.exam)}${c.exam?'. '+left(c.exam):''}</p></div></div>`;
+ if(animate)requestAnimationFrame(()=>requestAnimationFrame(()=>{const r=$('#rv');if(r)r.setAttribute('stroke-dashoffset',r.dataset.t)}));
+}
+function fillItems(){
+ const c=cc(),el=$('#items');if(!c){el.innerHTML='';return}
+ el.innerHTML=`<div class="ih"><span>Assessment</span><span>Weight %</span><span>Score</span><span>Out of</span><span></span></div>`+
+ c.items.map(i=>`<div class="ir"><input type="text" class="gi" data-i="${i.id}" data-k="name" maxlength="60" value="${esc(i.name)}" aria-label="Assessment name"><input type="number" class="gi" data-i="${i.id}" data-k="w" min="0" max="100" step="any" value="${i.w}" aria-label="Weight percent"><input type="number" class="gi" data-i="${i.id}" data-k="s" min="0" step="any" placeholder="-" value="${i.s===null?'':i.s}" aria-label="Score"><input type="number" class="gi" data-i="${i.id}" data-k="max" min="1" step="any" value="${i.max}" aria-label="Out of"><button class="x" data-act="delitem" data-id="${i.id}" aria-label="Remove assessment">&times;</button></div>`).join('')+
+ `<p style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0 0"><button class="btn gc" data-act="additem">Add assessment</button><button class="btn danger" data-act="delcourse" style="border-color:#ff8b99;color:#ff8b99">${U.del?'Click again to remove course':'Remove course'}</button></p><p class="sub">Leave Score empty until the work is marked.</p>`;
+}
+function fillG(){
+ const s=scen(CS()),fC=cum(s.f),pC=cum(s.p),uC=cum(s.u),tC=cum(s.t),cl=hasPrev()?' (cumulative)':'';
+ const row=r=>`<tr><td>${esc(r.c.name)}</td><td>${r.c.credits}</td><td>${fx(r.k.floor)}% ${chip(r.k.floor)}</td><td>${fx(r.k.cur)}${r.k.cur===null?'':'%'} ${chip(r.k.cur)}</td><td>${fx(r.k.ceil)}% ${chip(r.k.ceil)}</td></tr>`;
+ const stt=t=>fC!==null&&fC>=t?'Secured':pC!==null&&pC>=t?'On pace':uC!==null&&uC>=t?'Possible, needs improvement':'Out of reach this semester';
+ $('#gres').innerHTML=`<div class="scroll"><table class="tbl"><tr><th>Course</th><th>Credits</th><th>Floor</th><th>Current pace</th><th>Ceiling</th></tr>${s.rows.map(row).join('')||'<tr><td colspan="5" class="sub">No courses in this semester yet.</td></tr>'}
+ <tr><td><b>GPA${cl}</b></td><td></td><td><b>${fx(fC,2)}</b></td><td><b>${fx(pC,2)}</b></td><td><b>${fx(uC,2)}</b></td></tr></table></div>
+ <p class="note">GPA if every course hits its target grade: <b>${fx(tC,2)}</b>${tC===null?'':' ('+cls(tC)+')'}. Projected GPA uses only the ${s.n} of ${CS().length} courses that have scores.</p>
+ <div class="sec"><h2>Where you stand</h2><div class="scroll"><table class="tbl"><tr><th>GPA</th><th>What it means</th><th>Status</th></tr>${THR.map(r=>`<tr><td class="num">${r[0].toFixed(2)}</td><td>${r[1]}</td><td>${stt(r[0])}</td></tr>`).join('')}</table></div>
+ <p class="note">Classification applies to your final cumulative GPA, so earlier semesters only show your pace. Thresholds are from the 2017 catalog. Retake and repeat rules are not modelled.</p></div>`;
+}
+
+// ---- Aura page: colour and motion inspired by Asta and Jin-Woo (no character art) ----
+const AURA={
+ asta:{label:'Asta',sub:'Anti-magic',a:'#ff3b2f',b:'#ff9a3c',bg:'radial-gradient(90% 70% at 50% 100%,#3a0a12 0%,#14060a 60%,#080305 100%)',
+  titles:['Spark','Ember','Blaze','Inferno','Unbreakable'],lines:['No magic needed. Show up, push past yesterday, repeat.','Every mark you earn is another swing. Keep swinging.','The gap to your target is only work you have not done yet.']},
+ jin:{label:'Jin-Woo',sub:'Shadow',a:'#8b5cf6',b:'#60a5fa',bg:'radial-gradient(90% 70% at 50% 100%,#2a1260 0%,#0d0824 60%,#05030f 100%)',
+  titles:['Dormant','Stirring','Rising','Awakened','Sovereign'],lines:['Level up quietly and let the results speak.','Weaker than you want to be today, stronger every session.','Clear the syllabus one room at a time.']},
+ classic:{label:'Classic',sub:'Focus',a:'#6f8bff',b:'#9bd0ff',bg:'radial-gradient(90% 70% at 50% 100%,#1f2c6e 0%,#0c1130 60%,#060818 100%)',
+  titles:['Spark','Glow','Bright','Radiant','Brilliant'],lines:['Small steady sessions beat last-minute panic.','Know your number, then work toward it.','Progress counts even when it is quiet.']}
+};
+const rgba=(h,a)=>{const n=parseInt(h.slice(1),16);return`rgba(${n>>16},${n>>8&255},${n&255},${a})`};
+function bigRing(g,f,u,img){
+ const R1=150,R2=134,c1=2*Math.PI*R1,c2=2*Math.PI*R2,fr=v=>v===null?0:Math.min(1,v/4.33);
+ const arc=(cls,r,c,v,x='')=>`<circle class="${cls}" cx="180" cy="180" r="${r}" transform="rotate(-90 180 180)" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${c.toFixed(1)}" data-t="${(c*(1-fr(v))).toFixed(1)}"${x}/>`;
+ return`<svg class="bigring" viewBox="0 0 360 360" role="img" aria-label="Projected GPA ${fx(g,2)} out of 4.33"><defs><linearGradient id="ag" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--a)"/><stop offset="1" stop-color="var(--b)"/></linearGradient></defs>
+ <circle class="bt" cx="180" cy="180" r="${R1}"/>${arc('bc',R1,c1,u)}${arc('bp',R1,c1,g,' stroke="url(#ag)"')}${arc('bf',R2,c2,f)}
+ ${img?`<clipPath id="pc"><circle cx="180" cy="180" r="112"/></clipPath><g clip-path="url(#pc)"><image class="pic" href="${img}" x="68" y="68" width="224" height="224" preserveAspectRatio="xMidYMid slice"/></g><circle class="halo" cx="180" cy="180" r="114" style="animation-duration:${(3.4-2.2*fr(g)).toFixed(2)}s"/><rect x="128" y="262" width="104" height="38" rx="19" fill="rgba(0,0,0,.6)"/><text class="bn2" x="180" y="288">${fx(g,2)}</text>`:`<text class="bn" x="180" y="188">${fx(g,2)}</text><text class="bl" x="180" y="224">${g===null?'Awaiting your first score':'Projected GPA'}</text>`}</svg>`;
+}
+function auraHTML(){
+ const T=AURA[S.theme],s=scen(CS()),g=s.p.g,lv=g===null?0:Math.round(g/4.33*100);
+ const ti=T.titles[lv<20?0:lv<40?1:lv<60?2:lv<80?3:4],line=T.lines[new Date().getDate()%T.lines.length];
+ const nx=CS().filter(c=>days(c.exam)!==null&&days(c.exam)>=0).sort((a,b)=>days(a.exam)-days(b.exam))[0];
+ let bt='No upcoming exam dates. Add one on the Courses tab.';
+ if(nx){const k=calc(nx);bt=`<b>${esc(nx.name)}</b>${fd(nx.exam)}, ${left(nx.exam)}. `+(k.st==='secured'?`Target ${nx.target} is secured. Protect it.`:k.st==='out'?`Target ${nx.target} is out of reach. Best possible finish is ${band(k.ceil)[1]}.`:`Needs ${fx(k.need)}% on the remaining marks to finish on ${nx.target}.`)}
+ return`<section class="aura" style="--a:${T.a};--b:${T.b};background:${T.bg}">
+ <div class="bgmedia" id="bgm" aria-hidden="true"></div>
+ <div class="seg" role="group" aria-label="Aura theme">${THEMES.map(k=>`<button data-act="theme" data-v="${k}" aria-pressed="${S.theme===k}">${AURA[k].label}</button>`).join('')}</div>
+ <p class="sub" style="margin:8px 0 0">${T.label}: ${T.sub}</p>
+ <p style="margin:10px 0 0;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><label class="btn imgbtn">Add animated background<input type="file" id="bgfile" accept="image/gif,image/webp,image/apng,image/png,image/jpeg,video/mp4,video/webm" hidden></label><button class="btn ghost imgbtn" data-act="rmbg">Remove background</button><label class="btn ghost imgbtn">${S.imgs[S.theme]?'Change':'Add'} ${IMGL[S.theme]}<input type="file" id="imgfile" accept="image/*" hidden></label>${S.imgs[S.theme]?'<button class="btn ghost imgbtn" data-act="rmimg">Remove image</button>':''}</p><p class="sub" id="imsg" role="status" style="min-height:1.2em;margin:4px 0 0"></p>
+ <div class="stage" id="stage"><canvas id="cv" aria-hidden="true"></canvas>${bigRing(g,s.f.g,s.u.g,S.imgs[S.theme])}${S.imgs[S.theme]?'':`<label class="addbig"><span>+</span>Add ${IMGL[S.theme]}<input type="file" id="imgfile2" accept="image/*" hidden></label>`}</div>
+ <div class="ttl">${ti}<small>Aura level ${lv}</small></div><p class="line">${line}</p>
+ <div class="battle"><span class="sub">Your next battle</span>${bt}</div>
+ <div class="gs"><div><span class="sub">Floor</span><b>${fx(s.f.g,2)}</b></div><div><span class="sub">On pace</span><b>${fx(g,2)}</b></div><div><span class="sub">Ceiling</span><b>${fx(s.u.g,2)}</b></div></div>
+ <p class="note">Aura level is your projected GPA for ${esc(sem().name)} as a share of 4.33. The glowing arc is your pace, the faint arc is your ceiling and the thin white arc is your floor. The effects borrow colour and motion from Asta and Jin-Woo; no character art is included. Add your own picture for the ring, or an animated GIF, WebP or short video as the background. Everything stays in this browser and is not uploaded anywhere.</p></section>`;
+}
+let AF=0,RT=0;
+function stopAura(){if(AF)cancelAnimationFrame(AF);AF=0}
+function startAura(){
+ stopAura();const cv=$('#cv');if(!cv)return;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.bigring [data-t]').forEach(e=>e.setAttribute('stroke-dashoffset',e.dataset.t))));
+ const T=AURA[S.theme],g=scen(CS()).p.g,lv=g===null?0:Math.min(1,g/4.33),jin=S.theme==='jin';
+ const dpr=Math.min(2,window.devicePixelRatio||1),w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
+ cv.width=w*dpr;cv.height=h*dpr;const x=cv.getContext('2d');x.scale(dpr,dpr);
+ const cx=w/2,cy=h/2,R=w/1.24*0.4167,P=[];
+ const glow=()=>{x.clearRect(0,0,w,h);x.globalCompositeOperation='lighter';const gl=x.createRadialGradient(cx,cy,R*.6,cx,cy,R*1.4);gl.addColorStop(0,rgba(T.a,0));gl.addColorStop(.7,rgba(T.a,.08+.22*lv));gl.addColorStop(1,rgba(T.a,0));x.fillStyle=gl;x.fillRect(0,0,w,h)};
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches){glow();return}
+ const spawn=()=>{const an=Math.random()*6.283,r=R*(.96+Math.random()*.14),mote=jin&&Math.random()<.35;
+  P.push({x:cx+Math.cos(an)*r,y:cy+Math.sin(an)*r,vx:(Math.random()-.5)*(jin?.3:.8),vy:-(jin?.3+Math.random()*.7:.9+Math.random()*1.8),life:0,max:jin?90+Math.random()*80:50+Math.random()*50,sz:mote?1+Math.random()*1.8:jin?10+Math.random()*24:2+Math.random()*4,c:Math.random()<.5?T.a:T.b,mote})};
+ const frame=()=>{
+  glow();const n=Math.floor(.3+lv*2.2+Math.random());for(let i=0;i<n;i++)spawn();
+  for(let i=P.length-1;i>=0;i--){const p=P[i];if(++p.life>p.max){P.splice(i,1);continue}
+   p.x+=p.vx+(jin?Math.sin((p.life+p.sz)/18)*.4:Math.sin(p.life/6)*.3);p.y+=p.vy;const k=1-p.life/p.max;
+   if(jin&&!p.mote){const gr=x.createRadialGradient(p.x,p.y,0,p.x,p.y,p.sz);gr.addColorStop(0,rgba(p.c,.22*k));gr.addColorStop(1,rgba(p.c,0));x.fillStyle=gr;x.beginPath();x.arc(p.x,p.y,p.sz,0,7);x.fill()}
+   else if(jin){x.fillStyle=rgba(p.c,.9*k);x.beginPath();x.arc(p.x,p.y,p.sz,0,7);x.fill()}
+   else{x.fillStyle=rgba(p.c,.85*k);x.beginPath();x.ellipse(p.x,p.y,p.sz*k*.6+.3,p.sz*k*2.2+.5,0,0,7);x.fill()}}
+  if(P.length>320)P.splice(0,P.length-320);
+  AF=requestAnimationFrame(frame);
+ };
+ frame();
+}
+window.addEventListener('resize',()=>{if(U.tab==='aura'){clearTimeout(RT);RT=setTimeout(startAura,200)}});
+
+// ---- Your own images: resized in the browser, kept in localStorage, never uploaded ----
+const IMGL={asta:'Asta image',jin:'Jin-Woo image',classic:'an image'};
+function setImg(file){
+ const msg=t=>{const m=$('#imsg');if(m)m.textContent=t};
+ if(!file||!/^image\//.test(file.type)){msg('Choose an image file.');return}
+ const fr=new FileReader();
+ fr.onerror=()=>msg('That file could not be read.');
+ fr.onload=()=>{const im=new Image();
+  im.onerror=()=>msg('That file could not be opened as an image.');
+  im.onload=()=>{
+   const k=Math.min(1,640/Math.max(im.width,im.height)),c=document.createElement('canvas');
+   c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));
+   c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+   S.imgs[S.theme]=c.toDataURL('image/jpeg',0.85);
+   const ok=save();render();
+   if(!ok)msg('Shown now, but this browser could not save it, so it will disappear when you leave.');
+  };im.src=fr.result;
+ };fr.readAsDataURL(file);
+}
+document.addEventListener('dragover',e=>{if(e.target.closest&&e.target.closest('#stage'))e.preventDefault()});
+document.addEventListener('drop',e=>{if(!(e.target.closest&&e.target.closest('#stage')))return;e.preventDefault();const f=e.dataTransfer.files[0];(f&&(/^video\//.test(f.type)||f.type==='image/gif'))?setBg(f):setImg(f)});
+
+// ---- Animated background: your own GIF, WebP or short video, kept in IndexedDB in this browser ----
+const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('ability-board-media',1);r.onupgradeneeded=()=>r.result.createObjectStore('m');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const mGet=k=>idb().then(db=>new Promise((res,rej)=>{const q=db.transaction('m').objectStore('m').get(k);q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error)}));
+const mPut=(k,v)=>idb().then(db=>new Promise((res,rej)=>{const t=db.transaction('m','readwrite');t.objectStore('m').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)}));
+const mDel=k=>idb().then(db=>new Promise((res,rej)=>{const t=db.transaction('m','readwrite');t.objectStore('m').delete(k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)}));
+let BGURL='';
+function setBg(file){
+ const msg=t=>{const m=$('#imsg');if(m)m.textContent=t};
+ if(!file||!/^(image|video)\//.test(file.type)){msg('Choose a GIF, WebP, MP4 or WebM file.');return}
+ if(file.size>25e6){msg('That file is over 25 MB. Choose a shorter or smaller clip.');return}
+ mPut(S.theme,file).then(()=>render()).catch(()=>msg('This browser could not store that file.'));
+}
+function loadBg(){
+ if(BGURL){URL.revokeObjectURL(BGURL);BGURL=''}
+ const host=$('#bgm');if(!host)return;const th=S.theme;
+ mGet(th).then(f=>{
+  if(!f||S.theme!==th||U.tab!=='aura')return;
+  if(/^video\//.test(f.type)){
+   BGURL=URL.createObjectURL(f);
+   const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+   host.innerHTML=`<video src="${BGURL}" ${still?'':'autoplay '}loop muted playsinline></video>`;
+   const v=host.querySelector('video');
+   if(v){v.onerror=()=>{host.innerHTML='';const m=$('#imsg');if(m)m.textContent='This browser blocked that video. Try a GIF or WebP instead.'};if(!still){const p=v.play();if(p&&p.catch)p.catch(()=>{})}}
+  }else{
+   const fr=new FileReader();
+   fr.onload=()=>{if(S.theme===th&&U.tab==='aura')host.innerHTML=`<img src="${fr.result}" alt="">`};
+   fr.readAsDataURL(f);
+  }
+ }).catch(()=>{});
+}
+
+document.addEventListener('click',e=>{
+ const t=e.target.closest('[data-act]');if(!t)return;const a=t.dataset.act,c=cc();
+ if(a==='tab'){U.tab=t.dataset.v;U.del=false;U.reset=false;U.delSem=null;render()}
+ else if(a==='theme'){S.theme=THEMES.includes(t.dataset.v)?t.dataset.v:'classic';save();render()}
+ else if(a==='rmimg'){S.imgs[S.theme]='';save();render()}
+ else if(a==='rmbg'){mDel(S.theme).catch(()=>{}).then(()=>render())}
+ else if(a==='sel'){U.sel=Number(t.dataset.id);U.del=false;fillList();fillHead();fillCalc(true);fillItems()}
+ else if(a==='opensem'){S.active=Number(t.dataset.s);selFirst();U.tab='courses';U.del=false;U.delSem=null;save();render()}
+ else if(a==='delsem'){
+  const i=Number(t.dataset.s);if(U.delSem!==i){U.delSem=i;render();return}
+  S.semesters.splice(i,1);S.active=Math.max(0,Math.min(S.active>i?S.active-1:S.active,S.semesters.length-1));selFirst();U.delSem=null;save();render();
+ }
+ else if(a==='additem'&&c){c.items.push({id:Math.max(0,...c.items.map(i=>i.id))+1,name:'New assessment',w:0,s:null,max:100});save();fillItems();fillCalc(false);fillList();tiles()}
+ else if(a==='delitem'&&c){c.items=c.items.filter(i=>i.id!==Number(t.dataset.id));save();fillItems();fillCalc(false);fillList();tiles()}
+ else if(a==='delcourse'&&c){
+  if(!U.del){U.del=true;fillItems();return}
+  sem().courses=CS().filter(x=>x.id!==c.id);selFirst();U.del=false;save();render();
+ }else if(a==='export'){$('#io').value=JSON.stringify({...S,imgs:undefined},null,1);$('#dmsg').textContent='Copy this text and keep it somewhere safe.'}
+ else if(a==='savefile'){saveFile()}
+ else if(a==='import'){
+  try{const d=JSON.parse($('#io').value);if(!valid(d))throw 0;const keep=S.imgs;S=norm(d);S.imgs=keep;selFirst();save();semrow();tiles();$('#dmsg').textContent='Imported '+S.semesters.length+' semesters.'}
+  catch(x){$('#dmsg').textContent='That text is not valid Ability Board data. Paste the exported text exactly as it was copied.'}
+ }else if(a==='reset'){
+  if(!U.reset){U.reset=true;render();return}
+  THEMES.forEach(k=>mDel(k).catch(()=>{}));S=norm({courses:[]});selFirst();U.reset=false;save();render();
+ }
+});
+document.addEventListener('input',e=>{
+ const t=e.target,c=cc();
+ if(t.id==='pc'||t.id==='pg'){S.prior.credits=num($('#pc').value,0,500,0);S.prior.gpa=num($('#pg').value,0,4.33,0);save();tiles();fillG();return}
+ if(t.dataset.sn!==undefined){S.semesters[Number(t.dataset.sn)].name=t.value.slice(0,40);save();semrow();tiles();return}
+ if(!c)return;
+ if(t.dataset.f){const f=t.dataset.f;c[f]=f==='credits'?num(t.value,0,30,0):f==='exam'?t.value:t.value.slice(0,60);save();tiles();fillList();fillCalc(false)}
+ else if(t.dataset.i){
+  const i=c.items.find(x=>x.id===Number(t.dataset.i)),k=t.dataset.k;if(!i)return;
+  if(k==='name')i.name=t.value;
+  else if(k==='w')i.w=num(t.value,0,100,0);
+  else if(k==='max'){i.max=Math.max(1,num(t.value,1,100000,100));if(i.s!==null)i.s=Math.min(i.s,i.max)}
+  else if(k==='s')i.s=t.value===''?null:num(t.value,0,i.max,0);
+  save();tiles();fillList();fillCalc(false);
+ }
+});
+document.addEventListener('change',e=>{
+ if(e.target.id==='imgfile'||e.target.id==='imgfile2'){setImg(e.target.files[0]);return}
+ if(e.target.id==='bgfile'){setBg(e.target.files[0]);return}
+ if(e.target.id==='loadfile'){loadFile(e.target.files[0]);e.target.value='';return}
+ const c=cc();
+ if(e.target.id==='sem'){S.active=Number(e.target.value);selFirst();U.del=false;save();render();return}
+ if(e.target.id==='tgt'&&c){c.target=e.target.value;save();tiles();fillList();fillCalc(false)}
+ if(e.target.dataset.f==='exam')fillList();
+});
+document.addEventListener('submit',e=>{
+ if(e.target.id==='add'){
+  e.preventDefault();const n=$('#nn').value.trim();
+  if(!n){$('#err').textContent='Enter a course name before adding.';return}
+  if(CS().some(c=>c.name.toLowerCase()===n.toLowerCase())){$('#err').textContent='This semester already has a course with that name.';return}
+  const c=Object.assign(mkC(n,$('#nd').value,num($('#nc').value,0,30,3)),{id:Math.max(0,...CS().map(x=>x.id))+1});
+  c.items.forEach((i,ii)=>i.id=ii+1);CS().push(c);U.sel=c.id;U.del=false;save();render();
+ }else if(e.target.id==='adds'){
+  e.preventDefault();const n=$('#sn').value.trim();
+  if(!n){$('#serr').textContent='Enter a semester name before starting it.';return}
+  if(S.semesters.some(s=>s.name.toLowerCase()===n.toLowerCase())){$('#serr').textContent='A semester with that name already exists.';return}
+  S.semesters.push({name:n,courses:[]});S.active=S.semesters.length-1;selFirst();U.tab='courses';save();render();
+ }
+});
+// ---- Backup to a file (native share sheet inside the Android app, normal download in a browser) ----
+async function saveFile(){
+ const m=$('#dmsg'),txt=JSON.stringify({...S,imgs:undefined},null,1),name='ability-board-backup-'+new Date().toISOString().slice(0,10)+'.json';
+ const P=window.Capacitor&&window.Capacitor.Plugins;
+ try{
+  if(P&&P.Filesystem&&P.Share){
+   const r=await P.Filesystem.writeFile({path:name,data:txt,directory:'CACHE',encoding:'utf8'});
+   await P.Share.share({title:'Ability Board backup',files:[r.uri]});
+   if(m)m.textContent='Choose where to keep the backup, for example Drive or Files.';
+  }else{
+   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();a.remove();
+   if(m)m.textContent='Backup file downloaded.';
+  }
+ }catch(x){
+  if(m)m.textContent=/cancel/i.test(String(x&&x.message))?'':'Could not save the file. Use Show data as text and copy it instead.';
+ }
+}
+function loadFile(f){
+ const m=$('#dmsg');if(!f)return;
+ const fr=new FileReader();
+ fr.onerror=()=>{if(m)m.textContent='That file could not be read.'};
+ fr.onload=()=>{const io=$('#io');if(io)io.value=String(fr.result);if(m)m.textContent='File loaded. Press Import data to restore it.'};
+ fr.readAsText(f);
+}
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+render();
+</script>
+</body>
+</html>
